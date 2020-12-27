@@ -177,5 +177,5 @@ python3 MailRipV2.py
 
 <h4>Last Update</h4>
 <p>
-    2020-12-26: create repo, contribute release 1 of Mail.Rip v2.
+    2020-12-27: contribute release 1 of Mail.Rip v2 (verbose messages improved)..
 </p>
