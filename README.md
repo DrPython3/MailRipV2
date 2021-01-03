@@ -12,6 +12,9 @@
     <b>You are allowed to use the following code for educational purposes only!</b> Mail.Rip v2 shall not be used for any kind of illegal activity nor law enforcement at any time.
     This restriction applies to all cases of usage, no matter whether the code as a whole or only parts of it are being used.
 </p>
+<p>
+    <i>By downloading and / or using any part of the code and / or any file of this repository, you agree to these restrictions without remarks.</i>
+</p>
 
 <h3>Features</h3>
 <p>
