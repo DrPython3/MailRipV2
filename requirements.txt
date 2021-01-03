@@ -2,5 +2,5 @@ certifi>=2020.12.5
 urllib3>=1.25.10
 uuid>=1.30
 PySocks>=1.7.1
-colorama>=0.4.4
-dnspython>=1.16.0
+colorama>=0.4.2
+dnspython>=1.15.0
