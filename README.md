@@ -29,6 +29,9 @@
     found SMTP login. All test messages are sent to your user-defined receiving address. This way, the cracker / checker provides an easy verification of so called "hits"
      together with an <b>inbox test</b>.
 </p>
+<p>
+    <b>Mail.Rip v2 is already full functional and ready to use!</b>
+</p>
 
 <h2>How-to use Mail.Rip v2</h2>
 <p>
