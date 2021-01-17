@@ -494,7 +494,6 @@
     "mailguard.me",
     "mailin8r.com",
     "mailinater.com",
-    "mailinator.com",
     "mailinator.net",
     "mailinator.org",
     "mailinator2.com",
@@ -667,8 +666,6 @@
     "spamgourmet.net",
     "spamgourmet.org",
     "spamherelots.com",
-    "spamherelots.com",
-    "spamhereplease.com",
     "spamhereplease.com",
     "spamhole.com",
     "spamify.com",
@@ -768,9 +765,6 @@
     "willselfdestruct.com",
     "winemaven.info",
     "wronghead.com",
-    "www.e4ward.com",
-    "www.mailinator.com",
-    "wwwnew.eu",
     "x.ip6.li",
     "xagloo.com",
     "xemaps.com",
@@ -794,12 +788,10 @@
   ],
   "socks4sources": [
     "https://www.proxyscan.io/api/proxy?format=txt&type=socks4&limit=20&uptime=50",
-    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks4&timeout=500",
-    "https://www.proxy-list.download/api/v1/get?type=socks4"
+    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks4&timeout=500"
   ],
   "socks5sources": [
     "https://www.proxyscan.io/api/proxy?format=txt&type=socks5&limit=20&uptime=50",
-    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks5&timeout=500",
-    "https://www.proxy-list.download/api/v1/get?type=socks5"
+    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks5&timeout=1000"
   ]
 }

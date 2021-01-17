@@ -107,7 +107,7 @@ python3 MailRipV2.py
     </ul>
 </p>
 <p>
-    All combos passing the checks will be loaded for an attack and saved to a txt-file called <i>combos_cleaned.txt</i>.
+    All combos passing the checks will be loaded for an attack and temporarily saved to a txt-file called <i>combos_cleaned.txt</i>. Please make sure that your combofile is encoded with utf-8 or errors may occur when loading it.
 </p>
 
 <h4>[4] Start Attack</h4>
@@ -183,5 +183,5 @@ python3 MailRipV2.py
 
 <h4>Last Update</h4>
 <p>
-    2021-01-03: release 3 with little improvements and minor bugfixes.
+    2021-01-17: release 4 - see commit comments for further details.
 </p>
