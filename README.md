@@ -107,7 +107,7 @@ python3 MailRipV2.py
     </ul>
 </p>
 <p>
-    All combos passing the checks will be loaded for an attack and temporarily saved to a txt-file called <i>combos_cleaned.txt</i>. Please make sure that your combofile is encoded with utf-8 or errors may occur when loading it.
+    All combos passing the checks will be loaded for an attack and temporarily saved to a txt-file called <i>targets.txt</i>. <b>Please make sure that your combofile is encoded with utf-8</b> or errors may occur when loading it.
 </p>
 
 <h4>[4] Start Attack</h4>
