@@ -223,7 +223,6 @@
   ],
   "commonports": [
     25,
-    2525,
     465,
     587
   ],
@@ -249,6 +248,7 @@
     "10minutemail.co.za",
     "10minutemail.com",
     "123-m.com",
+    "163.com",
     "1fsdfdsfsdf.tk",
     "1pad.de",
     "20minutemail.com",
@@ -787,11 +787,11 @@
     "zomg.info"
   ],
   "socks4sources": [
-    "https://www.proxyscan.io/api/proxy?format=txt&type=socks4&limit=20&uptime=50",
+    "https://www.proxyscan.io/api/proxy?format=txt&type=socks4&limit=20",
     "https://api.proxyscrape.com?request=displayproxies&proxytype=socks4&timeout=500"
   ],
   "socks5sources": [
-    "https://www.proxyscan.io/api/proxy?format=txt&type=socks5&limit=20&uptime=50",
-    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks5&timeout=1000"
+    "https://www.proxyscan.io/api/proxy?format=txt&type=socks5&limit=20",
+    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks5&timeout=2000"
   ]
 }

