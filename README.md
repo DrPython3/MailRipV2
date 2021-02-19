@@ -187,5 +187,5 @@ python3 MailRipV2.py
 
 <h4>Last Update</h4>
 <p>
-    2021-02-07: release 5 - see commit comments for further details.
+    2021-02-19: release 6 - see commit comments for further details.
 </p>

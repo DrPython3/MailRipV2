@@ -792,6 +792,6 @@
   ],
   "socks5sources": [
     "https://www.proxyscan.io/api/proxy?format=txt&type=socks5&limit=20",
-    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks5&timeout=2000"
+    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks5&timeout=1000"
   ]
 }

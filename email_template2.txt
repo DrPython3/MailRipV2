@@ -1,0 +1,24 @@
+# THIS IS TEMPLATE NO.2 - EDIT FOR YOUR NEEDS #
+
+Hello mate!
+
+If you read this, the e-mail delivery test was successful.
+The tested SMTP login is:
+
+PLACEHOLDER EMAIL: ${smtp_email}
+PLACEHOLDER HOST: ${smtp_host}
+PLACEHOLDER PORT: ${smtp_port}
+PLACEHOLDER USER: ${smtp_user}
+PLACEHOLDER PASS: ${smtp_pass}
+
+Please, consider a donation to support my work or just buy me a coffee.
+Every donation is appreciated though coffee even more.
+The (donation) wallets are:
+
+BTC: 1CU8WukMCDmeBfqJpsR4Vq9kxvNiRdYhf5
+LTC: LeJsHzcMixhvR1qEfgHJU32joVAJDgQwR7
+
+Thank you in advance and do not forget to visit my GitHub page!
+
+Stay healthy and best regards,
+DrPython3
