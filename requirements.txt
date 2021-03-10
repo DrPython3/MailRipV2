@@ -3,4 +3,4 @@ urllib3>=1.26.3
 uuid>=1.30
 PySocks>=1.7.1
 colorama>=0.4.4
-dnspython>=1.16.0
+dnspython>=2.1.0

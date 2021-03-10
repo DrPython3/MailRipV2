@@ -788,10 +788,12 @@
   ],
   "socks4sources": [
     "https://www.proxyscan.io/api/proxy?format=txt&type=socks4&limit=20",
-    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks4&timeout=500"
+    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks4&timeout=500",
+    "https://www.proxy-list.download/api/v1/get?type=socks4"
   ],
   "socks5sources": [
     "https://www.proxyscan.io/api/proxy?format=txt&type=socks5&limit=20",
-    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks5&timeout=1000"
+    "https://api.proxyscrape.com?request=displayproxies&proxytype=socks5&timeout=1000",
+    "https://www.proxy-list.download/api/v1/get?type=socks5"
   ]
 }

