@@ -9,7 +9,7 @@
 
 <h3>Legal Notices</h3>
 <p>
-    <b>You are allowed to use the following code for educational purposes only!</b> Mail.Rip v2 shall not be used for any kind of illegal activity nor law enforcement at any time.
+    <b>You are allowed to use the following code for educational purposes ONLY!</b> Mail.Rip v2 shall not be used for any kind of illegal activity nor law enforcement at any time.
     This restriction applies to all cases of usage, no matter whether the code as a whole or only parts of it are being used.
 </p>
 <p>
@@ -19,9 +19,8 @@
 <h3>Features</h3>
 <p>
     Mail.Rip v2 is a SMTP checker / SMTP cracker written in Python 3.8. Using the "smtplib", it allows you to check common mailpass combolists for valid SMTP logins.
-    It has <b>included dictionaries and lists containing server details of common e-mail providers as well as most common subdomains and ports used for SMTP servers.</b>
-    Besides that, "dnspython" is used to <b>lookup unknown SMTP hosts in MX records</b>. In case it fails, the cracker / checker will try to <b>find the target-server 
-    by using the most common subdomains and ports</b> in a connection-test by trial and error.
+    It has <b>included dictionaries and lists containing server details of common e-mail providers as well as most common ports used for SMTP servers.</b>
+    Besides that, "dnspython" is used to <b>lookup unknown SMTP hosts in MX records</b>.
 </p>
 <p>
     Moreover, Mail.Rip v2 comes with <b>SOCKS-proxy support</b> and a <b>proxy-scraper</b> function. If the proxy-support is activated, the checker / cracker scrapes 
@@ -30,7 +29,7 @@
 <p>
     Last but not least, Mail.Rip v2 includes an <b>e-mail delivery test</b> for found SMTP logins. For every valid combo, it tries to send a plain text e-mail with the
     found SMTP login. All test messages are sent to your user-defined receiving address. This way, the cracker / checker provides an easy verification of so called "hits"
-     together with an <b>inbox test</b>.
+     together with an <b>inbox test</b>. The content of the test e-mails can be edited by the user. Mail.Rip v2 comes with five template files. The template used to generate a test message is chosen randomly on every test.
 </p>
 <p>
     <b>Mail.Rip v2 is already full functional and ready to use!</b>
@@ -129,8 +128,7 @@ python3 MailRipV2.py
         <li>The SMTP cracker / SMTP checker reads the next combo from the list loaded before.</li>
         <li>It looks up the e-mail domain in the "smtphost" dictionary for the SMTP-host to attack.</li>
         <li>For unknown hosts, it will try to get from the MX records of the e-mail domain.</li>
-        <li>If still no host is found, it trys to establish a connection to guessed hosts using most common subdomains one by one.</li>
-        <li>Same for the connection port.</li>
+        <li>The connection port for host found in MX records is searched using the most common ones in a trial and error process.</li>
         <li>Afterwards it establishes a connection to the SMTP host (trying SSL first and non-SSL on errors as well as TLS)</li>
         <li>and sends the login data using the target e-mail address and the given password the combo contained.</li>
         <li>If the login is denied, the cracker / checker will try to login with the user-ID (e-mail without @...) and the password.</li>
@@ -149,8 +147,8 @@ python3 MailRipV2.py
 
 <h3>Notes on the e-mail delivery test (inbox check)</h3>
 <p>
-    The e-mail template is loaded from the <i>email_template.txt</i>. Edit that file for your needs.
-    If the file cannot be loaded, the default template within the code will be used.
+    The e-mail template is loaded from the <i>email_template(...).txt</i> files. Edit those files for your needs.
+    If the randomly chosen file cannot be loaded, the default template within the code will be used.
 </p>
 <p>
     Always regard that the e-mail delivery test may return false negative results for many reasons. It just confirms that the 
@@ -187,5 +185,5 @@ python3 MailRipV2.py
 
 <h4>Last Update</h4>
 <p>
-    2021-03-10: release 8 - see commit comments for further details.
+    2021-03-27: release 9 - see commit comments for further details.
 </p>

