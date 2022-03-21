@@ -831,7 +831,7 @@ def attacker(attackid, target):
         except Exception:
 
             # on errors, lookup host in MX records:
-            lookup_host = 'no_host_found' #str(mxlookup(attacker_id, target_domain))
+            lookup_host = str(mxlookup(attacker_id, target_domain))
 
             # if lookup fails, end attack:
             if lookup_host == 'no_host_found':
