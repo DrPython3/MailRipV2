@@ -3,5 +3,5 @@ colorama>=0.4.4
 dnspython>=2.1.0
 PySocks>=1.7.1
 tqdm>=4.48.0
-urllib3>=1.26.3
+requests
 uuid>=1.30
