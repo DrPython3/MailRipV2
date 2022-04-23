@@ -56,7 +56,7 @@ pip3 install -r requirements.txt
     Installing any missing dependencies may take some time. Be patient, please.
 </p>
 
-<h2>Start the Checker / Cracker</h3>
+<h2>Start the Checker / Cracker</h2>
 <p>
     With all dependencies being installed, you can start Mail.Rip V2.1337 with:
 </p>
